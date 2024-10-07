@@ -1,0 +1,30 @@
+python -m pip install --upgrade pip
+name: Run botrader  # Nome do seu workflow
+
+# Evento que dispara o workflow (neste caso, toda vez que você fizer um push no repositório)
+on:
+  push:
+    branches:
+      - main  # Branch em que o workflow será executado
+
+# Define os jobs (tarefas) do workflow
+jobs:
+  run-script:
+    runs-on: ubuntu-latest  # Define que vai rodar em um servidor Linux (Ubuntu)
+
+    steps:
+      - name: Checkout code  # Pega o código do repositório
+        uses: actions/checkout@v3
+
+      - name: Set up Python  # Configura o ambiente com Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Define a versão do Python
+
+      - name: Install dependencies  # Instala as dependências do script, se houver (exemplo: bibliotecas Python)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Python script  # Executa o script
+        run: python telegram_bot.py  # Substitua pelo nome do seu script, se for diferente
