@@ -1,25 +1,47 @@
-name: Run Python Script
+from telethon import TelegramClient, events
+import re
+import schedule
+import time
 
-on: 
-  push:
-    branches: 
-      - main
+# Coloque suas credenciais da API do Telegram aqui
+api_id = '27555772'
+api_hash = '9434e8bd894dbe4c2fb431003e5dbe9b'
+phone = '+5573999175769'
 
-jobs:
-  run-script:
-    runs-on: ubuntu-latest
+# O link de afiliado que você deseja colocar
+meu_link_afiliado = 'https://www.homebroker.com/pt'
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+# Nome de usuário ou ID do canal de origem (onde as mensagens serão copiadas)
+canal_origem = '1002228938682'
+# Nome de usuário ou ID do canal/destinatário onde você quer reenviar a mensagem
+canal_destino = '1002190831140'
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12.6'  # Substitua '3.x' pela versão específica, se necessário
+# Inicializa o cliente do Telegram
+client = TelegramClient('session_name', api_id, api_hash)
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt  # Instala as dependências do requirements.txt
+# Função para modificar o link de afiliado na mensagem
+def modificar_mensagem(texto):
+    texto_modificado = re.sub(r'https?://\S+', f'📊 [Clique aqui para abrir a corretora]({meu_link_afiliado})', texto)
+    return texto_modificado
 
-      - name: Run Python script
-        run: python telegram_bot.py  # Substitua pelo nome do seu script Python
+async def fetch_and_forward_messages():
+    # Captura as mensagens e processa
+    async for message in client.iter_messages(canal_origem):
+        if message.video or message.sticker:  # Ignora vídeos e figurinhas
+            continue
+
+        mensagem_original = message.message
+        mensagem_modificada = modificar_mensagem(mensagem_original)
+        await client.send_message(canal_destino, mensagem_modificada, parse_mode='md')
+
+# Agendar a função para ser executada a cada 5 minutos
+schedule.every(5).minutes.do(fetch_and_forward_messages)
+
+async def job():
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(1)  # Pausa para evitar uso excessivo de CPU
+
+# Inicia o cliente
+with client:
+    client.loop.run_until_complete(job())
