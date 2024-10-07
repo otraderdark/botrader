@@ -1,5 +1,5 @@
 python -m pip install --upgrade pip
-name: Run botrader  # Nome do seu workflow
+name: Run main.yml  # Nome do seu workflow
 
 # Evento que dispara o workflow (neste caso, toda vez que você fizer um push no repositório)
 on:
